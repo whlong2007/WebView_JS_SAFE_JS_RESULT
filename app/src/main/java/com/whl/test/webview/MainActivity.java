@@ -31,7 +31,7 @@ public class MainActivity extends Activity {
 		settingWebView();
 
 		webView.addJavascriptInterface(new JSBridge(), JSBridge.class.getSimpleName());
-		// webView.loadUrl("file:///android_asset/html/index.html");
+		webView.loadUrl("file:///android_asset/html/index.html");
 
 		callJS.setOnClickListener(new OnClickListener() {
 
