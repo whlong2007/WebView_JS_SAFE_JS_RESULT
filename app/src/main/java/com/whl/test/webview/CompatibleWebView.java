@@ -9,6 +9,7 @@ import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -46,7 +47,8 @@ public class CompatibleWebView extends WebView {
 		setWebChromeClient(new WebChromeClient(this));
 	}
 
-	@Override
+    @Override
+    @SuppressLint("JavascriptInterface")
 	public void addJavascriptInterface(Object obj, String name) {
 		if (!WebViewConfig.isUsePrompt()) {
 			super.addJavascriptInterface(obj, name);
@@ -218,6 +220,10 @@ public class CompatibleWebView extends WebView {
 			return type == WebViewConfig.TYPE_PROMPT_RESULT;
 		}
 
-	}
+        @Override
+        public String toString() {
+            return "Message: [type: "+type+" ,name: "+interfaceName+" ,method: "+interfaceMethod+"]";
+        }
+    }
 
 }

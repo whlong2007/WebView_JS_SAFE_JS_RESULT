@@ -4,78 +4,75 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
+import android.os.*;
 import android.util.Log;
+import android.view.View;
 
 public class JSExecutor {
-	public final static String TAG = "JSExecutor";
+    public final static String TAG = "JSExecutor";
 
-	private CompatibleWebView mWebView;
-	private JSExecutResult mResult;
-	private String mInterfaceName;
+    private CompatibleWebView mWebView;
 
-	public JSExecutor(CompatibleWebView view) {
-		this(view, new JSExecutResult());
-	}
+    public JSExecutor(CompatibleWebView view) {
+        this.mWebView = view;
+    }
 
-	public JSExecutor(CompatibleWebView view, JSExecutResult obj) {
-		this(view, obj, obj.getClass().getSimpleName());
-	}
+    public String execute(String script) {
 
-	public JSExecutor(CompatibleWebView view, JSExecutResult obj, String name) {
-		this.mWebView = view;
-		this.mResult = obj;
-		this.mInterfaceName = name;
-	}
+        if (Looper.myLooper() == Looper.getMainLooper()) {//会阻塞loadURL执行JS
+            throw new IllegalStateException("Cannot be called from main thread");
+        }
 
-	public String execute(String script) {
-		mWebView.addJSExecutResult(mResult, mInterfaceName);
+        JSExecutResult interfaceObj = new JSExecutResult();
+        String interfaceName = JSExecutResult.class.getSimpleName() + interfaceObj.hashCode();
 
-		if (script.startsWith("javascript:")) {
-			script = script.substring("javascript:".length());
-		}
+        mWebView.addJSExecutResult(interfaceObj, interfaceName);
 
-		if (script.endsWith(";")) {
-			script = script.substring(0, script.length() - 1);
-		}
+        if (script.startsWith("javascript:")) {
+            script = script.substring("javascript:".length());
+        }
 
-		Map<String, Object> interfaces = new HashMap<String, Object>();
-		interfaces.put(mInterfaceName, mResult);
-		String JSExecutResultJS = JSPromptUtil.generateInterfaceJS(null, WebViewConfig.TYPE_PROMPT_RESULT, interfaces);
+        if (script.endsWith(";")) {
+            script = script.substring(0, script.length() - 1);
+        }
 
-		final StringBuilder sb = new StringBuilder();
-		sb.append("javascript:(");
-		sb.append("function(){");
-		sb.append(JSExecutResultJS).append(";");
+        Map<String, Object> interfaces = new HashMap<String, Object>();
+        interfaces.put(interfaceName, interfaceObj);
+        String JSExecutResultJS = JSPromptUtil.generateInterfaceJS(null, WebViewConfig.TYPE_PROMPT_RESULT, interfaces);
 
-		sb.append("var result=new Object();");
-		sb.append("try{");
-		sb.append("result.error=").append(WebViewConfig.ERROR_JS_EXECUTOR_OK).append(";");
-		sb.append("result.result=").append(script).append(";");
-		sb.append("}catch(e){");
-		sb.append("result.error=").append(WebViewConfig.ERROR_JS_EXECUTOR_JS).append(";");
-		sb.append("result.result=e.name+':'+e.message;");
-		sb.append("}");
-		sb.append(mInterfaceName).append(".confirm(JSON.stringify(result));");
-		sb.append("})()");
+        final StringBuilder sb = new StringBuilder();
+        sb.append("javascript:(");
+        sb.append("function(){");
+        sb.append(JSExecutResultJS).append(";");
 
-		Log.i(TAG, "JSExecutor: " + sb.toString());
+        sb.append("var result=new Object();");
+        sb.append("try{");
+        sb.append("result.error=").append(WebViewConfig.ERROR_JS_EXECUTOR_OK).append(";");
+        sb.append("result.result=").append(script).append(";");
+        sb.append("}catch(e){");
+        sb.append("result.error=").append(WebViewConfig.ERROR_JS_EXECUTOR_JS).append(";");
+        sb.append("result.result=e.name+':'+e.message;");
+        sb.append("}");
+        sb.append(interfaceName).append(".confirm(JSON.stringify(result));");
+        sb.append("})()");
 
-		mWebView.post(new Runnable() {
-			@Override
-			public void run() {
-				mWebView.loadUrl(sb.toString());
-			}
-		});
+        Log.i(TAG, "JSExecutor: " + sb.toString());
 
-		String result;
+        mWebView.post(new Runnable() {
+            public void run() {
+                mWebView.loadUrl(sb.toString());
+            }
+        });
 
-		try {
-			result = mResult.waitForResult();
-		} catch (TimeoutException e) {
-			result = "result: {\"error\":" + WebViewConfig.ERROR_JS_EXECUTOR_TIMEOUT + ",\"result\":\"JavaScript execute timeout!\"}";
-		}
+        String result;
 
-		mWebView.removeJSExecutResult(mInterfaceName);
-		return result;
-	}
+        try {
+            result = interfaceObj.waitForResult();
+        } catch (TimeoutException e) {
+            result = "result: {\"error\":" + WebViewConfig.ERROR_JS_EXECUTOR_TIMEOUT + ",\"result\":\"JavaScript execute timeout!\"}";
+        }
+
+        mWebView.removeJSExecutResult(interfaceName);
+        return result;
+    }
 }

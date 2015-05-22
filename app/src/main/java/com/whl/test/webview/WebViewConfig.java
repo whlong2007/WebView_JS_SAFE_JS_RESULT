@@ -49,7 +49,7 @@ public class WebViewConfig {
 	/**
 	 * JS执行等待周期
 	 */
-	public final static int EXECUTOR_JS_PERIOD = 5000;
+	public final static int EXECUTOR_JS_PERIOD = 500;
 	/**
 	 * JS执行TIMEOUT时长
 	 */
