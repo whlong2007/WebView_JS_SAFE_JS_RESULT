@@ -4,15 +4,9 @@
     android:layout_height="match_parent"
     tools:context="com.whl.test.webview.MainActivity" >
 
-    <com.whl.test.webview.CompatibleWebView
+    <WebView
         android:id="@+id/webview"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
-    <Button
-        android:id="@+id/call_js"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="call_js" />
 
 </RelativeLayout>

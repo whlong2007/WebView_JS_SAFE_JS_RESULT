@@ -1,90 +1,129 @@
 package com.whl.test.webview;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.pm.ApplicationInfo;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.webkit.JavascriptInterface;
+import android.view.KeyEvent;
 import android.webkit.WebSettings;
-import android.widget.Button;
+import android.webkit.WebView;
 
-import com.whl.test.webview.CompatibleWebView.WebChromeClient;
-import com.whl.test.webview.CompatibleWebView.WebViewClient;
+import com.alibaba.fastjson.JSONObject;
+import com.whl.test.webview.browser.LCallback;
+import com.whl.test.webview.browser.LInterface;
+import com.whl.test.webview.browser.LJavascript;
+import com.whl.test.webview.browser.LProvider;
+import com.whl.test.webview.browser.LWebChromeClient;
+import com.whl.test.webview.browser.LWebViewClient;
+import com.whl.test.webview.browser.SimpleLInterface;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends Activity {
-	public final static String TAG = "MainActivity";
+    public final static String TAG = "MainActivity";
 
-	CompatibleWebView webView;
-	Button callJS;
+    private WebView mWebview;
 
-	@TargetApi(Build.VERSION_CODES.KITKAT)
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-		webView = (CompatibleWebView) findViewById(R.id.webview);
-		callJS = (Button) findViewById(R.id.call_js);
-		settingWebView();
+        mWebview = (WebView) findViewById(R.id.webview);
 
-		webView.addJavascriptInterface(new JSBridge(), JSBridge.class.getSimpleName());
-		webView.loadUrl("file:///android_asset/html/index.html");
+        WebSettings settings = mWebview.getSettings();
 
-		callJS.setOnClickListener(new OnClickListener() {
+        settings.setSupportZoom(true);
+        settings.setBuiltInZoomControls(true);
+        settings.setDisplayZoomControls(false);
 
-			@Override
-			public void onClick(View v) {
-				new Thread() {
-					public void run() {
-						String script = "javascript:returnBack()";
-						String result = new JSExecutor(webView).execute(script).toString();
-						Log.i(TAG, "javascript.result: " + result);
-					}
-				}.start();
-			}
-		});
+        settings.setUseWideViewPort(true);
+        settings.setLoadWithOverviewMode(true);
+        settings.setJavaScriptCanOpenWindowsAutomatically(true);
+        // 客串文件
+        settings.setAllowFileAccess(true);
+        // 可解析js
+        settings.setJavaScriptEnabled(true);
+        settings.setPluginState(WebSettings.PluginState.ON);
+        settings.setLightTouchEnabled(true);
 
-	}
+        settings.setAppCacheEnabled(true);
+        settings.setDatabaseEnabled(true);
+        settings.setGeolocationEnabled(true);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        settings.setDomStorageEnabled(true);
 
-	private void settingWebView() {
-		WebSettings settings = webView.getSettings();
+        if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            if (0 != (getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
+                WebView.setWebContentsDebuggingEnabled(true);
+            }
+        }
 
-		settings.setSupportZoom(true);
-		settings.setBuiltInZoomControls(true);
+        Map<String, List<LInterface>> map = new HashMap<String, List<LInterface>>();
+        List<LInterface> ykList = new ArrayList<LInterface>();
+        ykList.add(new Login());
+        ykList.add(new Login2());
 
-		if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-			settings.setDisplayZoomControls(false);
-		}
+        map.put("yk", ykList);
 
-		settings.setUseWideViewPort(true);
-		settings.setLoadWithOverviewMode(true);
-		settings.setJavaScriptCanOpenWindowsAutomatically(true);
-		// 客串文件
-		settings.setAllowFileAccess(true);
-		// 可解析js
-		settings.setJavaScriptEnabled(true);
-		settings.setPluginState(WebSettings.PluginState.ON);
-		settings.setLightTouchEnabled(true);
+        LProvider mYKJSProvider = LProvider.init(this, mWebview, "MainActivity#WebView", map);
 
-		settings.setAppCacheEnabled(true);
-		settings.setDatabaseEnabled(true);
-		settings.setGeolocationEnabled(true);
-		settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-		settings.setDomStorageEnabled(true);
+        mWebview.setWebChromeClient(new LWebChromeClient(mYKJSProvider));
+        mWebview.setWebViewClient(new LWebViewClient(mYKJSProvider) {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return true;
+            }
+        });
 
-		webView.setWebViewClient(new WebViewClient(webView));
-		webView.setWebChromeClient(new WebChromeClient(webView));
-	}
+        mWebview.loadUrl("file:///android_asset/browser/test.html");
+    }
 
-	public static class JSBridge {
-		@JavascriptInterface
-		public String getName(String params) {
-			Log.i(TAG, "params: " + params);
 
-			return "执行成功";
-		}
-	}
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+        if (keyCode == KeyEvent.KEYCODE_BACK && mWebview.canGoBack()) {
+            mWebview.goBack();
+            return true;
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }
+
+    class Login extends SimpleLInterface {
+        @LJavascript
+        public JSONObject login(WebView view, String curUrl, JSONObject params, LCallback callback) {
+
+            JSONObject result = new JSONObject();
+            result.put("hello", "world");
+
+            return result;
+        }
+    }
+
+    class Login2 extends SimpleLInterface {
+
+        @LJavascript(action = "login3")
+        public JSONObject login2(WebView view, String curUrl, JSONObject params, LCallback callback) {
+
+            Map<String, Object> map = new HashMap<String, Object>();
+
+            JSONObject result = new JSONObject();
+            result.put("error", "Login2");
+            result.put("callback", 1);
+
+            Map<String, String> cookie = new HashMap<String, String>();
+            cookie.put("password", "sdsd25524");
+
+            callback.dispatch(result);
+            result.remove("callback");
+            return result;
+        }
+    }
+
 }

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Test</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+  <meta name="format-detection" content="telephone=no" />
+
+  <script type="text/javascript">
+    var sdk_ready = "com.whl.l_sdk.init#ready";
+    window.addEventListener(sdk_ready, function(event) {
+      yk.config({
+        "api": [{
+          "apiList": ["login3"],
+          "obj": "yk"
+        }]
+      });
+    }, false);
+
+    ////////////////////////////////////////////////////////////////////////////
+    function login() {
+      var result = yk.login3({
+        callback: function(e) {
+          alert(JSON.stringify(e));
+        }
+      });
+
+      alert(JSON.stringify(result));
+    }
+  </script>
+
+</head>
+
+<body style="background:#000">
+
+  <BR/>
+  <BR/>
+
+  <input type="button" value="Event" onClick=login() />
+
+  <BR/>
+  <BR/>
+
+
+</body>

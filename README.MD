@@ -1,12 +1,17 @@
-﻿感谢以下两篇文章的启发:
-[在WebView中如何让JS与Java安全地互相调用](http://www.pedant.cn/2014/07/04/webview-js-java-interface-research/)
-, [WebView中接口隐患与手机挂马利用](http://drops.wooyun.org/papers/548);
+﻿优点:
+    1.摈弃JavascriptInterfaces方式,避免高危漏洞执行shell代码.
+    2.隐藏Native实现方式,随机生成tag来校验JS调用,增加安全性.
+    3.可配置Interface,JS需要配置并且验证才能调用相关Native接口.
 
-在这两篇文章的基础上,修改了一下JS注入的方式(通过Resource引用来);
+缺点:
+    1.和JavascriptInterfaces不一样,该JS方法是加载页面过程中注入的,所以需要等JS加载完才能调用.
 
-还添加了JS立即返回功能(参照Android SDK Source里的webviewtest);
 
-后续JS立即返回可以按照SDK 19的以下方法来做,暂时还没定好要不要这么做.
 ```Java
-WebView.evaluateJavascript()
+//使用前初始化一下LProvider
+LProvider mYKJSProvider = LProvider.init(this, mWebView, "MainActivity#WebView", map);
+
+//使用自己的YKWebChromeClient和YKWebViewClient
+mWebView.setWebChromeClient(new LWebChromeClient(mYKJSProvider));
+mWebView.setWebViewClient(new LWebViewClient(mYKJSProvider));
 ```
