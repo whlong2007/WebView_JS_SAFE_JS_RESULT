@@ -148,7 +148,7 @@ public class LProvider {
 
     private boolean executeImp(LExecutor executor, WebView view, String url, String message, JsResult result) {
         LMessage msg = LMessage.parseMessage(message);
-        if (msg.isVaild()) {
+        if (msg.isValid()) {
             executor.execute(view, url, msg, result);
             return true;
         }

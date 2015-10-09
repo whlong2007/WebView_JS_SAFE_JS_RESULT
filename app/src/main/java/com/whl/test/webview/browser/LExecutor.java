@@ -78,9 +78,9 @@ abstract class LExecutor {
             @Override
             public void confirm(JSONObject result) {
                 if (TextUtils.isEmpty(msg.obj) || TextUtils.isEmpty(msg.action) || TextUtils.isEmpty(msg.timestamp)) {
-                    mYKJSProvider.dispatchJSEvent(view, msg.obj + "." + msg.action + "#" + msg.timestamp, result);
-                } else {
                     WebConsoleLog.DEBUG(TAG, "callback is invalid!");
+                } else {
+                    mYKJSProvider.dispatchJSEvent(view, msg.obj + "." + msg.action + "#" + msg.timestamp, result);
                 }
             }
         });

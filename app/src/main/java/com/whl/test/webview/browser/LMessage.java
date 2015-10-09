@@ -54,7 +54,7 @@ final class LMessage {
         return msg;
     }
 
-    boolean isVaild() {
+    boolean isValid() {
         return TAG_VALUE.equals(tag);
     }
 }
