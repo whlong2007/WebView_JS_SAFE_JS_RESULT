@@ -49,7 +49,6 @@ public class LProvider {
             for (LInterface obj : entry.getValue()) {
                 provider.addInterface(name, obj);
             }
-
         }
 
         provider.init(activity, view, tag);

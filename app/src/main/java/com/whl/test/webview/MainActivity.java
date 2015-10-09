@@ -1,6 +1,7 @@
 package com.whl.test.webview;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.os.Build;
 import android.os.Bundle;
@@ -8,7 +9,6 @@ import android.view.KeyEvent;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
-import com.alibaba.fastjson.JSONObject;
 import com.whl.test.webview.browser.LCallback;
 import com.whl.test.webview.browser.LInterface;
 import com.whl.test.webview.browser.LJavascript;
@@ -16,6 +16,8 @@ import com.whl.test.webview.browser.LProvider;
 import com.whl.test.webview.browser.LWebChromeClient;
 import com.whl.test.webview.browser.LWebViewClient;
 import com.whl.test.webview.browser.SimpleLInterface;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +28,7 @@ public class MainActivity extends Activity {
     public final static String TAG = "MainActivity";
 
     private WebView mWebview;
+//    private LUploadHandler mUploadHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +36,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         mWebview = (WebView) findViewById(R.id.webview);
+//        mUploadHandler = new LUploadHandler(this, 0x2015, "上传文件");
 
         WebSettings settings = mWebview.getSettings();
 
@@ -71,7 +75,12 @@ public class MainActivity extends Activity {
 
         LProvider mYKJSProvider = LProvider.init(this, mWebview, "MainActivity#WebView", map);
 
-        mWebview.setWebChromeClient(new LWebChromeClient(mYKJSProvider));
+        mWebview.setWebChromeClient(new LWebChromeClient(mYKJSProvider) {
+
+//            public void openFileChooser(ValueCallback<Uri> uploadFile, String acceptType, String capture) {
+//                mUploadHandler.openFileChooser(uploadFile, acceptType, capture);
+//            }
+        });
         mWebview.setWebViewClient(new LWebViewClient(mYKJSProvider) {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -83,6 +92,12 @@ public class MainActivity extends Activity {
         mWebview.loadUrl("file:///android_asset/browser/test.html");
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+//        mUploadHandler.onResult(resultCode, data);
+    }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -99,30 +114,31 @@ public class MainActivity extends Activity {
         @LJavascript
         public JSONObject login(WebView view, String curUrl, JSONObject params, LCallback callback) {
 
-            JSONObject result = new JSONObject();
+            Map<String, Object> result = new HashMap<String, Object>();
             result.put("hello", "world");
 
-            return result;
+            return new JSONObject(result);
         }
     }
 
     class Login2 extends SimpleLInterface {
 
         @LJavascript(action = "login3")
-        public JSONObject login2(WebView view, String curUrl, JSONObject params, LCallback callback) {
+        public JSONObject login2(LCallback callback) {
 
             Map<String, Object> map = new HashMap<String, Object>();
 
-            JSONObject result = new JSONObject();
+            Map<String, Object> result = new HashMap<String, Object>();
             result.put("error", "Login2");
             result.put("callback", 1);
 
             Map<String, String> cookie = new HashMap<String, String>();
             cookie.put("password", "sdsd25524");
 
-            callback.dispatch(result);
+            callback.confirm(new JSONObject(result));
+
             result.remove("callback");
-            return result;
+            return new JSONObject(result);
         }
     }
 

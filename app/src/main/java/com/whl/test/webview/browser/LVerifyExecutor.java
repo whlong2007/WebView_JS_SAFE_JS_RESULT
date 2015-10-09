@@ -3,11 +3,11 @@ package com.whl.test.webview.browser;
 import android.webkit.JsResult;
 import android.webkit.WebView;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 验证接口的执行
@@ -32,31 +32,8 @@ class LVerifyExecutor extends LExecutor {
     }
 
     @Override
-    protected boolean isParameterTypesValid(Class<?>[] paramTypes) {
-        return paramTypes.length == 3 && paramTypes[0].isAssignableFrom(WebView.class) && paramTypes[1].isAssignableFrom(String.class) && paramTypes[2].isAssignableFrom(JSONObject.class);
-    }
-
-    @Override
     protected boolean isReturnTypeValid(Class<?> ReturnType) {
         return ReturnType == boolean.class;
-    }
-
-    @Override
-    protected Object decodeParams(String params) {
-        JSONObject obj;
-
-        try {
-            obj = JSON.parseObject(params);
-        } catch (Exception e) {
-            obj = new JSONObject();
-        }
-
-        return obj;
-    }
-
-    @Override
-    protected Object encodeResult(Object obj) {
-        return obj;
     }
 
     @Override
@@ -66,11 +43,6 @@ class LVerifyExecutor extends LExecutor {
         } else {
             jsResult.cancel();
         }
-    }
-
-    @Override
-    protected Object invoke(Method methodImp, Object objImp, WebView view, String url, LMessage msg) throws Exception {
-        return methodImp.invoke(objImp, view, url, decodeParams(msg.args));
     }
 
     /**
@@ -98,38 +70,37 @@ class LVerifyExecutor extends LExecutor {
         sb.append(mYKJSProvider.getYKJSFactory().generateConfirm(obj, method, null));
 
 
-
-        JSONObject ready = new JSONObject();
+        Map<String, Object> ready = new HashMap<String, Object>();
         ready.put("error", 1);
         ready.put("timestamp", timestamp);
         ready.put("desc", "sdk is ready!");
 
         sb.append(mYKJSProvider.getYKJSFactory().generateJSEvent());
-        sb.append(mYKJSProvider.getYKJSFactory().dispatchJSEvent(LProvider.EVENT_JS_SDK_READY, ready.toJSONString()));
+        sb.append(mYKJSProvider.getYKJSFactory().dispatchJSEvent(LProvider.EVENT_JS_SDK_READY, new JSONObject(ready).toString()));
 
-        WebConsoleLog.DEBUG(TAG,sb.toString());
+        WebConsoleLog.DEBUG(TAG, sb.toString());
 
         view.loadUrl("javascript:(function(){" + sb + "})();");
     }
 
     private boolean activeMethods(WebView view, String url, JSONObject params) {
         if (params != null) {
-            JSONArray api = params.getJSONArray("api");
+            JSONArray api = params.optJSONArray("api");
 
             if (api != null) {
 
                 LProvider.ActiveTransaction at = mYKJSProvider.beginActiveMethod(view);
 
-                for (int i = 0; i < api.size(); i++) {
-                    JSONObject apiInfo = api.getJSONObject(i);
+                for (int i = 0; i < api.length(); i++) {
+                    JSONObject apiInfo = api.optJSONObject(i);
 
                     if (apiInfo != null) {
-                        String obj = apiInfo.getString("obj");
-                        JSONArray apiList = apiInfo.getJSONArray("apiList");
+                        String obj = apiInfo.optString("obj");
+                        JSONArray apiList = apiInfo.optJSONArray("apiList");
 
                         if (apiList != null) {
-                            for (int j = 0; j < apiList.size(); j++) {
-                                String method = apiList.getString(j);
+                            for (int j = 0; j < apiList.length(); j++) {
+                                String method = apiList.optString(j);
                                 at.activeMethod(obj, method);
                             }
                         }

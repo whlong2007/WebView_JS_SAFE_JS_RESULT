@@ -12,7 +12,7 @@
     window.addEventListener(sdk_ready, function(event) {
       yk.config({
         "api": [{
-          "apiList": ["login3"],
+          "apiList": ["login", "login3"],
           "obj": "yk"
         }]
       });
@@ -20,24 +20,28 @@
 
     ////////////////////////////////////////////////////////////////////////////
     function login() {
+
+      console.log("yk.login : " + yk.login);
+      console.log("yk.login3 : " + yk.login3);
+
       var result = yk.login3({
         callback: function(e) {
-          alert(JSON.stringify(e));
+          console.log("yk.login3 callback : " + JSON.stringify(e));
         }
       });
 
-      alert(JSON.stringify(result));
+      console.log("yk.login3 result : " + JSON.stringify(result));
     }
   </script>
 
 </head>
 
-<body style="background:#000">
+<body>
 
   <BR/>
   <BR/>
 
-  <input type="button" value="Event" onClick=login() />
+  <input type="button" value="Event" onClick=login(); />
 
   <BR/>
   <BR/>

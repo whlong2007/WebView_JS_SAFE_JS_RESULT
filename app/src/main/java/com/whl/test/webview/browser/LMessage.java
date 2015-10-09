@@ -31,7 +31,7 @@ final class LMessage {
     String obj;
     String action;
 
-    String args;
+    JSONObject args;
 
     private LMessage() {
     }
@@ -45,9 +45,11 @@ final class LMessage {
             msg.timestamp = obj.optString(KEY_TIMESTAMP);
             msg.obj = obj.optString(KEY_OBJECT);
             msg.action = obj.optString(KEY_ACTION);
-            msg.args = obj.optString(KEY_ARGS, "{}");
+            msg.args = obj.optJSONObject(KEY_ARGS);
         } catch (JSONException e) {
         }
+
+        if (msg.args == null) msg.args = new JSONObject();
 
         return msg;
     }
@@ -55,5 +57,4 @@ final class LMessage {
     boolean isVaild() {
         return TAG_VALUE.equals(tag);
     }
-
 }

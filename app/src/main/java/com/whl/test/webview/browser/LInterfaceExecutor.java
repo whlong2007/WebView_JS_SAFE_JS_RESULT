@@ -2,10 +2,6 @@ package com.whl.test.webview.browser;
 
 import android.webkit.JsPromptResult;
 import android.webkit.JsResult;
-import android.webkit.WebView;
-
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -61,57 +57,9 @@ class LInterfaceExecutor extends LExecutor {
     }
 
     @Override
-    protected boolean isParameterTypesValid(Class<?>[] paramTypes) {
-        return paramTypes.length == 4 && paramTypes[0].isAssignableFrom(WebView.class) && paramTypes[1].isAssignableFrom(String.class) && paramTypes[2].isAssignableFrom(JSONObject.class) && paramTypes[3].isAssignableFrom(LCallback.class);
-    }
-
-    @Override
-    protected boolean isReturnTypeValid(Class<?> ReturnType) {
-        return ReturnType.isAssignableFrom(JSONObject.class);
-    }
-
-    @Override
-    protected Object decodeParams(String params) {
-        JSONObject obj;
-
-        try {
-            obj = JSON.parseObject(params);
-        } catch (Exception e) {
-            obj = new JSONObject();
-        }
-
-        return obj;
-    }
-
-    @Override
-    protected Object encodeResult(Object result) {
-        Object obj;
-
-        try {
-            obj = JSON.toJSONString(result);
-        } catch (Exception e) {
-            obj = "";
-        }
-
-        return obj;
-    }
-
-    @Override
     protected void onJsResult(Object jsonObject, JsResult jsResult) {
         JsPromptResult result = (JsPromptResult) jsResult;
         result.confirm(jsonObject == null ? "{}" : jsonObject.toString());
-    }
-
-    @Override
-    protected Object invoke(Method methodImp, Object objImp, final WebView view, String url, final LMessage msg) throws Exception {
-        LCallback callback = new LCallback() {
-            @Override
-            public void dispatch(Object result) {
-                mYKJSProvider.dispatchJSEvent(view, msg.obj + "." + msg.action + "#" + msg.timestamp, encodeResult(result));
-            }
-        };
-
-        return methodImp.invoke(objImp, view, url, decodeParams(msg.args), callback);
     }
 
     @Override

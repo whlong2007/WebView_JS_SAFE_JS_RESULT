@@ -23,7 +23,9 @@ function Message(data) {
       _args = window.undefined;
       _content = window.undefined;
 
-      if (typeof args !== "object") {
+      if (typeof args == "undefined") {
+        args = new Object;
+      } else if (typeof args != "object") {
         throw "Args should be a json Object! \nat " + _obj_name + "." + _action + "()";
       }
 
