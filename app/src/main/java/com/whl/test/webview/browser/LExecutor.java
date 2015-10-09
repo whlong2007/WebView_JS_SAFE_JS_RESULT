@@ -4,10 +4,14 @@ import android.text.TextUtils;
 import android.webkit.JsResult;
 import android.webkit.WebView;
 
+import org.json.JSONObject;
+
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 接口对象的添加和执行
@@ -30,22 +34,29 @@ abstract class LExecutor {
      * 方法的参数类型是否有效
      */
     protected boolean isParameterTypesValid(Class<?>[] paramTypes) {
-        return true;
+        Set<Class> max = new HashSet<Class>();
+        max.add(WebView.class);
+        max.add(String.class);
+        max.add(JSONObject.class);
+        max.add(LCallback.class);
+
+        boolean isValid = true;
+        for (int i = 0; i < paramTypes.length; i++) {
+            isValid = max.remove(paramTypes[i]);
+            if (!isValid) {
+                break;
+            }
+        }
+
+        return isValid;
     }
 
     /**
      * 方法的返回类型是否有效
      */
     protected boolean isReturnTypeValid(Class<?> ReturnType) {
-        return true;
+        return ReturnType.isAssignableFrom(JSONObject.class);
     }
-
-    protected abstract Object decodeParams(String params);
-
-    /**
-     * 将方法的执行结果转换为JSON或者bool
-     */
-    protected abstract Object encodeResult(Object obj);
 
     /**
      * 调用结束返回给JS
@@ -57,7 +68,32 @@ abstract class LExecutor {
     /**
      * invoke method
      */
-    protected abstract Object invoke(Method methodImp, Object objImp, final WebView view, String url, final LMessage msg) throws Exception;
+    protected Object invoke(Method methodImp, Object objImp, final WebView view, String url, final LMessage msg) throws Exception {
+
+        Map<Class, Object> maxArgs = new HashMap<Class, Object>();
+        maxArgs.put(WebView.class, view);
+        maxArgs.put(String.class, url);
+        maxArgs.put(JSONObject.class, msg.args);
+        maxArgs.put(LCallback.class, new LCallback() {
+            @Override
+            public void confirm(JSONObject result) {
+                if (TextUtils.isEmpty(msg.obj) || TextUtils.isEmpty(msg.action) || TextUtils.isEmpty(msg.timestamp)) {
+                    mYKJSProvider.dispatchJSEvent(view, msg.obj + "." + msg.action + "#" + msg.timestamp, result);
+                } else {
+                    WebConsoleLog.DEBUG(TAG, "callback is invalid!");
+                }
+            }
+        });
+
+        int length = methodImp.getParameterTypes().length;
+        Object[] args = new Object[length];
+
+        for (int i = 0; i < length; i++) {
+            args[i] = maxArgs.get(methodImp.getParameterTypes()[i]);
+        }
+
+        return methodImp.invoke(objImp, args);
+    }
 
     /**
      * 执行方法
@@ -70,7 +106,7 @@ abstract class LExecutor {
 
             try {
                 Object execObject = invoke(methodImp, objImp, view, url, msg);
-                onJsResult(encodeResult(execObject), result);
+                onJsResult(execObject, result);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
