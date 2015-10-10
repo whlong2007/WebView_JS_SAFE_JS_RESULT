@@ -19,19 +19,12 @@ public class LWebChromeClient extends WebChromeClient {
 
     @Override
     public boolean onJsConfirm(WebView view, String url, String message, JsResult result) {
-        return mProvider.verify(view, url, message, result) || super.onJsConfirm(view, url, message, result);
+        return super.onJsConfirm(view, url, message, result) || mProvider.verify(view, url, message, result);
     }
 
     @Override
     public boolean onJsPrompt(WebView view, String url, String message, String defaultValue, JsPromptResult result) {
-        return mProvider.execute(view, url, message, defaultValue, result) || super.onJsPrompt(view, url, message, defaultValue, result);
-    }
-
-    @Override
-    public boolean onJsBeforeUnload(WebView view, String url, String message, JsResult result) {
-        mProvider.freeMethods();
-        result.confirm();
-        return true;
+        return super.onJsPrompt(view, url, message, defaultValue, result) || mProvider.execute(view, url, message, defaultValue, result);
     }
 
     @Override

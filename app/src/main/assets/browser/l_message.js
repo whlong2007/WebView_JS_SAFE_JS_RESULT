@@ -22,25 +22,34 @@ function Message(data) {
     set: function(args) {
       _args = window.undefined;
       _content = window.undefined;
+      _timestamp = window.undefined;
+      var callback;
 
-      if (typeof args == "undefined") {
-        args = new Object;
-      } else if (typeof args != "object") {
-        throw "Args should be a json Object! \nat " + _obj_name + "." + _action + "()";
+      if (args.length == 1 && typeof args[0] == "function") {
+        callback = args[0];
+      } else {
+        _args = args[0];
+        callback = args[1];
       }
 
-      _args = args;
+      if (typeof _args == "undefined") {
+        _args = new Object;
+      } else if (typeof _args != "object") {
+        throw "Args should be a json Object! \nat " + _obj_name + "." +
+          _action + "()";
+      }
+
       /*callback 注册到 window下,名称为obj.action.timestamp*/
-      if (_obj && _action && typeof args.callback === "function") {
+      if (_obj && _action && typeof callback === "function") {
         _timestamp = new Date().getTime();
         var eventName = _obj_name + "." + _action + "#" + _timestamp;
 
-        var callback = function(event) {
+        var _callback = function(event) {
           removeCallback(eventName, arguments.callee);
-          args.callback(event.detail);
+          callback(event.detail);
         };
 
-        addCallback(eventName, callback);
+        addCallback(eventName, _callback);
       }
     }
   });

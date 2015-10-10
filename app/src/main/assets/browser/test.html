@@ -24,13 +24,22 @@
       console.log("yk.login : " + yk.login);
       console.log("yk.login3 : " + yk.login3);
 
-      var result = yk.login3({
-        callback: function(e) {
-          console.log("yk.login3 callback : " + JSON.stringify(e));
-        }
-      });
+      var result = yk.login3();
+      console.log("yk.login3() result : " + JSON.stringify(result));
 
-      console.log("yk.login3 result : " + JSON.stringify(result));
+      result = yk.login3({});
+      console.log("yk.login3(object) result : " + JSON.stringify(result));
+
+      result = yk.login3(function(e) {
+        console.log("yk.login3(function) callback : " + JSON.stringify(e));
+      });
+      console.log("yk.login3(function) result : " + JSON.stringify(result));
+
+      result = yk.login3({}, function(e) {
+        console.log("yk.login3(object,function) callback : " + JSON.stringify(e));
+      });
+      console.log("yk.login3(object,function) result : " + JSON.stringify(result));
+
     }
   </script>
 

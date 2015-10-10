@@ -9,8 +9,8 @@ function invokeVerify(data) {
   };
 
   Object.defineProperty(msg.obj, data.action, {
-    value: function(args) {
-      return _yk[data.action](args);
+    value: function() {
+      return _yk[data.action](arguments);
     }
   });
 }

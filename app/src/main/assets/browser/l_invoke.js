@@ -15,7 +15,8 @@ function invokeExecute(data) {
       try {
         result = JSON.parse(resultStr);
       } catch (e) {
-        console.error("function " + data.action + " returns a invalid result. please use json data.\n" + resultStr);
+        console.error("function " + data.action +
+          " returns a invalid result. please use json data.\n" + resultStr);
       }
     }
 
@@ -23,8 +24,8 @@ function invokeExecute(data) {
   };
 
   Object.defineProperty(msg.obj, data.action, {
-    value: function(args) {
-      return _yk[data.action](args);
+    value: function() {
+      return _yk[data.action](arguments);
     }
   });
 }
