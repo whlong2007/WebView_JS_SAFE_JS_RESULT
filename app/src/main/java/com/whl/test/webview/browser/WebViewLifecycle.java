@@ -6,7 +6,6 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.webkit.WebView;
 
 /**
@@ -22,7 +21,7 @@ public class WebViewLifecycle extends Fragment {
 
     private UploadHandler mUploadHandler;
 
-    public static WebViewLifecycle addToActivity(Activity activity, String tag) {
+    public static WebViewLifecycle addToActivity(Activity activity, String tag, LProvider provider, WebView view) {
         FragmentManager fm = activity.getFragmentManager();
         WebViewLifecycle web = (WebViewLifecycle) fm.findFragmentByTag(tag);
 
@@ -33,6 +32,9 @@ public class WebViewLifecycle extends Fragment {
             ft.commit();
         }
 
+        web.mWebView = view;
+        web.mProvider = provider;
+
         return web;
     }
 
@@ -40,9 +42,8 @@ public class WebViewLifecycle extends Fragment {
         this.mUploadHandler = handler;
     }
 
-    public void initProvider(LProvider provider, WebView view) {
-        this.mWebView = view;
-        this.mProvider = provider;
+    public LProvider getProvider() {
+        return mProvider;
     }
 
     private boolean isProviderInited() {

@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -52,14 +53,28 @@ public abstract class UploadHandler<T> {
     private String mCameraFilePath;
 
     public UploadHandler(Activity activity, int requestCode, String title) {
-        this(activity, null, requestCode, title);
+        mActivity = activity;
+        mRequestCode = requestCode;
+        mTitle = title;
     }
 
-    public UploadHandler(Activity activity, Fragment fragment, int requestCode, String title) {
-        mActivity = activity;
+    public UploadHandler(Fragment fragment, int requestCode, String title) {
         mFragment = fragment;
         mRequestCode = requestCode;
         mTitle = title;
+    }
+
+    public Context getContext() {
+        Context context = null;
+        if (mActivity != null) {
+            context = mActivity;
+        } else if (mFragment != null) {
+            context = mFragment.getActivity();
+        }
+        if (context == null) {
+            throw new IllegalStateException("Fragment " + this + " not attached to Activity");
+        }
+        return context;
     }
 
     public void openFileChooser(ValueCallback<T> uploadMsg, String acceptType, String capture) {
@@ -223,7 +238,7 @@ public abstract class UploadHandler<T> {
         } catch (ActivityNotFoundException e) {
             // No installed app was able to handle the intent that
             // we sent, so file upload is effectively disabled.
-            Toast.makeText(mActivity, "上传失败", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "上传失败", Toast.LENGTH_LONG).show();
         }
     }
 

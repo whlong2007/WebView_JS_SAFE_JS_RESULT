@@ -80,34 +80,9 @@ public class MainActivity extends Activity {
         map.put("yk", ykList);
 
         LProvider provider = new LProvider(this, map);
-        mWebViewLifecycle = WebViewLifecycle.addToActivity(this, "WebViewLifecycle");
-        mWebViewLifecycle.initProvider(provider, mWebview);
+        mWebViewLifecycle = WebViewLifecycle.addToActivity(this, "WebViewLifecycle", provider, mWebview);
 
-        mWebview.setWebChromeClient(new LWebChromeClient(provider) {
-
-            public void openFileChooser(ValueCallback<Uri> uploadFile, String acceptType) {
-                UploadHandler<Uri> uploadHandler = new UploadHandler<Uri>(MainActivity.this, mWebViewLifecycle, 0x2015, "上传文件") {
-                };
-                mWebViewLifecycle.setUploadHandler(uploadHandler);
-                uploadHandler.openFileChooser(uploadFile, acceptType);
-            }
-
-            public void openFileChooser(ValueCallback<Uri> uploadFile, String acceptType, String capture) {
-                UploadHandler<Uri> uploadHandler = new UploadHandler<Uri>(MainActivity.this, mWebViewLifecycle, 0x2015, "上传文件") {
-                };
-                mWebViewLifecycle.setUploadHandler(uploadHandler);
-                uploadHandler.openFileChooser(uploadFile, acceptType, capture);
-            }
-
-            @Override
-            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
-                UploadHandler<Uri[]> uploadHandler = new UploadHandler<Uri[]>(MainActivity.this, mWebViewLifecycle, 0x2015, "上传文件") {
-                };
-                mWebViewLifecycle.setUploadHandler(uploadHandler);
-                uploadHandler.openFileChooser(filePathCallback, fileChooserParams);
-                return true;
-            }
-        });
+        mWebview.setWebChromeClient(new LWebChromeClient(mWebViewLifecycle));
         mWebview.setWebViewClient(new LWebViewClient(provider) {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -117,7 +92,6 @@ public class MainActivity extends Activity {
         });
 
         mWebview.loadUrl("file:///android_asset/browser/test.html");
-
     }
 
     @Override
