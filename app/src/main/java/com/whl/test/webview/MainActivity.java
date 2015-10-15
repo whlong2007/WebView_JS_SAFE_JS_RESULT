@@ -1,11 +1,17 @@
 package com.whl.test.webview;
 
 import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
+import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
@@ -13,9 +19,11 @@ import com.whl.test.webview.browser.LCallback;
 import com.whl.test.webview.browser.LInterface;
 import com.whl.test.webview.browser.LJavascript;
 import com.whl.test.webview.browser.LProvider;
+import com.whl.test.webview.browser.UploadHandler;
 import com.whl.test.webview.browser.LWebChromeClient;
 import com.whl.test.webview.browser.LWebViewClient;
 import com.whl.test.webview.browser.SimpleLInterface;
+import com.whl.test.webview.browser.WebViewLifecycle;
 
 import org.json.JSONObject;
 
@@ -28,7 +36,7 @@ public class MainActivity extends Activity {
     public final static String TAG = "MainActivity";
 
     private WebView mWebview;
-//    private LUploadHandler mUploadHandler;
+    private WebViewLifecycle mWebViewLifecycle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +44,6 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         mWebview = (WebView) findViewById(R.id.webview);
-//        mUploadHandler = new LUploadHandler(this, 0x2015, "上传文件");
 
         WebSettings settings = mWebview.getSettings();
 
@@ -70,18 +77,38 @@ public class MainActivity extends Activity {
         List<LInterface> ykList = new ArrayList<LInterface>();
         ykList.add(new Login());
         ykList.add(new Login2());
-
         map.put("yk", ykList);
 
-        LProvider mYKJSProvider = LProvider.init(this, mWebview, "MainActivity#WebView", map);
+        LProvider provider = new LProvider(this, map);
+        mWebViewLifecycle = WebViewLifecycle.addToActivity(this, "WebViewLifecycle");
+        mWebViewLifecycle.initProvider(provider, mWebview);
 
-        mWebview.setWebChromeClient(new LWebChromeClient(mYKJSProvider) {
+        mWebview.setWebChromeClient(new LWebChromeClient(provider) {
 
-//            public void openFileChooser(ValueCallback<Uri> uploadFile, String acceptType, String capture) {
-//                mUploadHandler.openFileChooser(uploadFile, acceptType, capture);
-//            }
+            public void openFileChooser(ValueCallback<Uri> uploadFile, String acceptType) {
+                UploadHandler<Uri> uploadHandler = new UploadHandler<Uri>(MainActivity.this, mWebViewLifecycle, 0x2015, "上传文件") {
+                };
+                mWebViewLifecycle.setUploadHandler(uploadHandler);
+                uploadHandler.openFileChooser(uploadFile, acceptType);
+            }
+
+            public void openFileChooser(ValueCallback<Uri> uploadFile, String acceptType, String capture) {
+                UploadHandler<Uri> uploadHandler = new UploadHandler<Uri>(MainActivity.this, mWebViewLifecycle, 0x2015, "上传文件") {
+                };
+                mWebViewLifecycle.setUploadHandler(uploadHandler);
+                uploadHandler.openFileChooser(uploadFile, acceptType, capture);
+            }
+
+            @Override
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                UploadHandler<Uri[]> uploadHandler = new UploadHandler<Uri[]>(MainActivity.this, mWebViewLifecycle, 0x2015, "上传文件") {
+                };
+                mWebViewLifecycle.setUploadHandler(uploadHandler);
+                uploadHandler.openFileChooser(filePathCallback, fileChooserParams);
+                return true;
+            }
         });
-        mWebview.setWebViewClient(new LWebViewClient(mYKJSProvider) {
+        mWebview.setWebViewClient(new LWebViewClient(provider) {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 view.loadUrl(url);
@@ -90,13 +117,7 @@ public class MainActivity extends Activity {
         });
 
         mWebview.loadUrl("file:///android_asset/browser/test.html");
-    }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-//        mUploadHandler.onResult(resultCode, data);
     }
 
     @Override

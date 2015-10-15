@@ -15,10 +15,14 @@ public class SimpleLInterface implements LInterface {
     protected LProvider mYKJSProvider;
 
     @Override
-    public void onCreate(Activity activity, WebView view, LProvider provider) {
+    public void onAttach(Activity activity, WebView view, LProvider provider) {
         this.mActivity = activity;
         this.mWebView = view;
         this.mYKJSProvider = provider;
+    }
+
+    @Override
+    public void onCreate() {
     }
 
     @Override

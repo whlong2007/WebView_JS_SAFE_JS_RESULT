@@ -8,7 +8,9 @@ import android.webkit.WebView;
  */
 public interface LInterface {
 
-    void onCreate(Activity activity, WebView view, LProvider provider);
+    void onAttach(Activity activity, WebView view, LProvider provider);
+
+    void onCreate();
 
     void onPause();
 

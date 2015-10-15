@@ -1,10 +1,7 @@
 package com.whl.test.webview.browser;
 
 import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.content.Context;
-import android.os.Bundle;
 import android.webkit.JsPromptResult;
 import android.webkit.JsResult;
 import android.webkit.WebView;
@@ -20,7 +17,7 @@ import java.util.Set;
 /**
  * JS生产和执行提供
  */
-public class LProvider {
+public class LProvider implements LInterface {
     private final static String TAG = "YKJSProvider";
 
     public final static String EVENT_JS_SDK_READY = "com.whl.l_sdk.init#ready";
@@ -29,56 +26,47 @@ public class LProvider {
     private LVerifyExecutor mVerifyExecutor;
     private LInterfaceExecutor mInterfaceExecutor;
 
-    private LProvider(Context context) {
+    private LInterface mPoxy;
+
+    public LProvider(Context context) {
+        this(context, null);
+    }
+
+    public LProvider(Context context, Map<String, List<LInterface>> interfaces) {
         this.mYKJSFactory = new LFactory(context);
         this.mVerifyExecutor = new LVerifyExecutor(this);
         this.mInterfaceExecutor = new LInterfaceExecutor(this);
-    }
 
-    /**
-     * 在load url之前init
-     *
-     * @param tag 用来放Fragment
-     */
-    public static LProvider init(Activity activity, WebView view, String tag, Map<String, List<LInterface>> interfaces) {
-        LProvider provider = new LProvider(activity);
+        if (interfaces != null) {
+            for (Map.Entry<String, List<LInterface>> entry : interfaces.entrySet()) {
+                String name = entry.getKey();
 
-        for (Map.Entry<String, List<LInterface>> entry : interfaces.entrySet()) {
-            String name = entry.getKey();
-
-            for (LInterface obj : entry.getValue()) {
-                provider.addInterface(name, obj);
+                for (LInterface obj : entry.getValue()) {
+                    addInterface(name, obj);
+                }
             }
         }
 
-        provider.init(activity, view, tag);
-
-        return provider;
+        initInterfacesLifecyclePoxy();
     }
 
     /**
-     * 在load url之前init
-     *
-     * @param tag 用来放Fragment
+     * 初始化接口生命周期代理类
      */
-    private void init(Activity activity, WebView view, String tag) {
-        Lifecycle fragment = (Lifecycle) activity.getFragmentManager().findFragmentByTag(tag);
+    private void initInterfacesLifecyclePoxy() {
+        InvocationHandler handler = new InvocationHandler() {
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                WebConsoleLog.DEBUG(TAG, method.getName());
 
-        FragmentTransaction ft = activity.getFragmentManager().beginTransaction();
+                for (Object obj : mInterfaceExecutor.getInterfaces()) {
+                    method.invoke(obj, args);
+                }
+                return null;
+            }
+        };
 
-        if (fragment != null) {
-            ft.remove(fragment);
-        } else {
-            fragment = new Lifecycle();
-        }
-
-        fragment.init(this, view);
-
-        ft.add(fragment, tag).commit();
-    }
-
-    public LFactory getYKJSFactory() {
-        return mYKJSFactory;
+        mPoxy = (LInterface) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{LInterface.class}, handler);
     }
 
     /**
@@ -171,6 +159,40 @@ public class LProvider {
         view.loadUrl("javascript:(function(){" + sb + "})();");
     }
 
+    @Override
+    public void onAttach(Activity activity, WebView view, LProvider provider) {
+        mPoxy.onAttach(activity, view, provider);
+    }
+
+    @Override
+    public void onCreate() {
+        mPoxy.onCreate();
+    }
+
+    @Override
+    public void onPause() {
+        mPoxy.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        mPoxy.onStop();
+    }
+
+    @Override
+    public void onDestroy() {
+        mPoxy.onDestroy();
+    }
+
+    @Override
+    public void onResume() {
+        mPoxy.onResume();
+    }
+
+    public LFactory getYKJSFactory() {
+        return mYKJSFactory;
+    }
+
     /**
      * Commit之后才会生成相应的JS对象并且执行
      */
@@ -216,100 +238,6 @@ public class LProvider {
         void checkCommit() {
             if (isCommit) {
                 throw new IllegalStateException("Transaction already commit!");
-            }
-        }
-    }
-
-    public static class Lifecycle extends Fragment {
-        private Activity mActivity;
-        private WebView mWebView;
-        private LProvider mYKJSProvider;
-        //遍历执行YKJSInterface的onCreate等方法
-        private LInterface mPoxy;
-
-        public void init(LProvider provider, WebView view) {
-            this.mWebView = view;
-            this.mYKJSProvider = provider;
-            initPoxy();
-        }
-
-        @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            this.mActivity = activity;
-        }
-
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            if (isInited()) {
-                mPoxy.onCreate(mActivity, mWebView, mYKJSProvider);
-            }
-        }
-
-        @Override
-        public void onResume() {
-            super.onResume();
-            if (isInited()) {
-                mPoxy.onResume();
-                mWebView.onResume();
-            }
-        }
-
-        @Override
-        public void onPause() {
-            super.onPause();
-            if (isInited()) {
-                mPoxy.onPause();
-                mWebView.onPause();
-            }
-        }
-
-        @Override
-        public void onStop() {
-            super.onStop();
-            if (isInited()) {
-                mPoxy.onStop();
-            }
-        }
-
-        @Override
-        public void onDestroy() {
-            super.onDestroy();
-
-            if (isInited()) {
-                mPoxy.onDestroy();
-            }
-        }
-
-        @Override
-        public void onDetach() {
-            super.onDetach();
-            mActivity = null;
-            mWebView = null;
-            mYKJSProvider = null;
-        }
-
-        private boolean isInited() {
-            return mWebView != null && mYKJSProvider != null;
-        }
-
-        private void initPoxy() {
-            if (mYKJSProvider != null) {
-
-                InvocationHandler handler = new InvocationHandler() {
-                    @Override
-                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                        WebConsoleLog.DEBUG(TAG, method.getName());
-
-                        for (Object obj : mYKJSProvider.mInterfaceExecutor.getInterfaces()) {
-                            method.invoke(obj, args);
-                        }
-                        return null;
-                    }
-                };
-
-                mPoxy = (LInterface) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{LInterface.class}, handler);
             }
         }
     }
