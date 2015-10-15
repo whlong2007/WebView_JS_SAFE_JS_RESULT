@@ -21,6 +21,12 @@ public class WebViewLifecycle extends Fragment {
 
     private UploadHandler mUploadHandler;
 
+    /**使用{@link WebViewLifecycle#addToActivity(Activity, String, LProvider, WebView)}
+     * @deprecated
+     */
+    public WebViewLifecycle(){
+    }
+
     public static WebViewLifecycle addToActivity(Activity activity, String tag, LProvider provider, WebView view) {
         FragmentManager fm = activity.getFragmentManager();
         WebViewLifecycle web = (WebViewLifecycle) fm.findFragmentByTag(tag);

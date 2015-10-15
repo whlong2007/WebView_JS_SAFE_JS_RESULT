@@ -10,10 +10,12 @@
 若使用 new JSONObject(map);来返回JSON的话,请注意Android 4.0之前JSONObject.toString()对于Collection是直接用Collection的toString作为Value。若要使用Collection请将new JSONArray(collection);作为Value放到Map中;
 
 ```Java
-//使用前初始化一下LProvider
-LProvider mYKJSProvider = LProvider.init(this, mWebView, "MainActivity#WebView", map);
+//初始化JS接口
+LProvider provider = new LProvider(this, map);
+//生命周期添加
+mWebViewLifecycle = WebViewLifecycle.addToActivity(this, "WebViewLifecycle", provider, mWebview);
 
-//使用自己的YKWebChromeClient和YKWebViewClient
-mWebView.setWebChromeClient(new LWebChromeClient(mYKJSProvider));
-mWebView.setWebViewClient(new LWebViewClient(mYKJSProvider));
+//使用自己的LWebChromeClient和LWebViewClient
+mWebview.setWebChromeClient(new LWebChromeClient(mWebViewLifecycle));
+mWebview.setWebViewClient(new LWebViewClient(provider)
 ```
