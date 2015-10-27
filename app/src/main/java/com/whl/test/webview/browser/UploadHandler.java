@@ -252,24 +252,26 @@ public abstract class UploadHandler<T> {
             boolean isCaptureEnabled;
 
             {
-                String params[] = acceptType.split(";");
-                mimeType = params[0];
-                String mediaSource = null;
+                if (!TextUtils.isEmpty(acceptType)) {
+                    String params[] = acceptType.split(";");
+                    mimeType = params[0];
+                    String mediaSource = null;
 
-                if (capture != null && capture.length() > 0) {//Build.VERSION_CODES.JELLY_BEAN
-                    isCaptureEnabled = true;
-                } else {
-                    for (String p : params) {
-                        String[] keyValue = p.split("=");
-                        if (keyValue.length == 2) {
-                            // Process key=value parameters.
-                            if (MEDIA_SOURCE_KEY.equals(keyValue[0])) {
-                                mediaSource = keyValue[1];
+                    if (!TextUtils.isEmpty(capture)) {//Build.VERSION_CODES.JELLY_BEAN
+                        mediaSource = capture;
+                    } else {
+                        for (String p : params) {
+                            String[] keyValue = p.split("=");
+                            if (keyValue.length == 2) {
+                                // Process key=value parameters.
+                                if (MEDIA_SOURCE_KEY.equals(keyValue[0])) {
+                                    mediaSource = keyValue[1];
+                                }
                             }
                         }
                     }
 
-                    isCaptureEnabled = (IMAGE_MIME_TYPE.equals(mimeType) && MEDIA_SOURCE_VALUE_CAMERA.equals(mediaSource)) || ((VIDEO_MIME_TYPE.equals(mimeType) && MEDIA_SOURCE_VALUE_CAMCORDER.equals(mediaSource))) || ((AUDIO_MIME_TYPE.equals(mimeType) && MEDIA_SOURCE_VALUE_MICROPHONE.equals(mediaSource)));
+                    isCaptureEnabled = "*".equals(mediaSource) || IMAGE_MIME_TYPE.equals(mimeType) && MEDIA_SOURCE_VALUE_CAMERA.equals(mediaSource) || ((VIDEO_MIME_TYPE.equals(mimeType) && MEDIA_SOURCE_VALUE_CAMCORDER.equals(mediaSource))) || ((AUDIO_MIME_TYPE.equals(mimeType) && MEDIA_SOURCE_VALUE_MICROPHONE.equals(mediaSource)));
                 }
             }
 

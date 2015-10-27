@@ -21,10 +21,12 @@ public class WebViewLifecycle extends Fragment {
 
     private UploadHandler mUploadHandler;
 
-    /**使用{@link WebViewLifecycle#addToActivity(Activity, String, LProvider, WebView)}
+    /**
+     * 使用{@link WebViewLifecycle#addToActivity(Activity, String, LProvider, WebView)}
+     *
      * @deprecated
      */
-    public WebViewLifecycle(){
+    public WebViewLifecycle() {
     }
 
     public static WebViewLifecycle addToActivity(Activity activity, String tag, LProvider provider, WebView view) {
@@ -44,8 +46,11 @@ public class WebViewLifecycle extends Fragment {
         return web;
     }
 
-    public void setUploadHandler(UploadHandler handler) {
+    public <T> UploadHandler<T> newUploadHandler(int requestCode, String title) {
+        UploadHandler handler = new UploadHandler<T>(this, requestCode, title) {
+        };
         this.mUploadHandler = handler;
+        return handler;
     }
 
     public LProvider getProvider() {
@@ -70,6 +75,8 @@ public class WebViewLifecycle extends Fragment {
             mProvider.onAttach(mActivity, mWebView, mProvider);
             mProvider.onCreate();
         }
+
+        this.mUploadHandler = null;
     }
 
     @Override
