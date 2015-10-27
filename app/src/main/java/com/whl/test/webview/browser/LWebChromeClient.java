@@ -12,22 +12,19 @@ import android.webkit.WebView;
  * 使用YKJSProvider来注入和配置JS接口
  * Created by 1 on 2015/9/10.
  */
-public class LWebChromeClient extends WebChromeClient implements LFileChooserListener {
+public class LWebChromeClient extends UploadChromeClient implements LFileChooserListener {
     public final static int REQUEST_CODE_UPLOADFILE = 0x2015;
     public final static String TITLE_UPLOADFILE = "上传文件";
 
     private WebViewLifecycle mLifecycle;
-    private int mUploadReqCode;
-    private String mUploadTitle;
 
     public LWebChromeClient(WebViewLifecycle lifecycle) {
         this(lifecycle, REQUEST_CODE_UPLOADFILE, TITLE_UPLOADFILE);
     }
 
     public LWebChromeClient(WebViewLifecycle lifecycle, int uploadReqCode, String uploadTitle) {
+        super(lifecycle, uploadReqCode, uploadTitle);
         this.mLifecycle = lifecycle;
-        this.mUploadReqCode = uploadReqCode;
-        this.mUploadTitle = uploadTitle;
     }
 
     @Override
@@ -38,22 +35,6 @@ public class LWebChromeClient extends WebChromeClient implements LFileChooserLis
     @Override
     public boolean onJsPrompt(WebView view, String url, String message, String defaultValue, JsPromptResult result) {
         return super.onJsPrompt(view, url, message, defaultValue, result) || mLifecycle.getProvider().execute(view, url, message, defaultValue, result);
-    }
-
-    @Override
-    public void openFileChooser(ValueCallback<Uri> uploadFile, String acceptType) {
-        mLifecycle.<Uri>newUploadHandler(mUploadReqCode, mUploadTitle).openFileChooser(uploadFile, acceptType);
-    }
-
-    @Override
-    public void openFileChooser(ValueCallback<Uri> uploadFile, String acceptType, String capture) {
-        mLifecycle.<Uri>newUploadHandler(mUploadReqCode, mUploadTitle).openFileChooser(uploadFile, acceptType, capture);
-    }
-
-    @Override
-    public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
-        mLifecycle.<Uri[]>newUploadHandler(mUploadReqCode, mUploadTitle).openFileChooser(filePathCallback, fileChooserParams);
-        return true;
     }
 
     @Override

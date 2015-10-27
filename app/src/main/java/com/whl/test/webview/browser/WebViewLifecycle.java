@@ -12,14 +12,12 @@ import android.webkit.WebView;
  * 将WebView与Activity关联生命周期抽离出来
  * Created by Allen on 2015/10/15.
  */
-public class WebViewLifecycle extends Fragment {
+public class WebViewLifecycle extends UploadLifecycle {
     private final static String TAG = "WebViewLifecycle";
 
     private Activity mActivity;
     private WebView mWebView;
     private LProvider mProvider;
-
-    private UploadHandler mUploadHandler;
 
     /**
      * 使用{@link WebViewLifecycle#addToActivity(Activity, String, LProvider, WebView)}
@@ -46,13 +44,6 @@ public class WebViewLifecycle extends Fragment {
         return web;
     }
 
-    public <T> UploadHandler<T> newUploadHandler(int requestCode, String title) {
-        UploadHandler handler = new UploadHandler<T>(this, requestCode, title) {
-        };
-        this.mUploadHandler = handler;
-        return handler;
-    }
-
     public LProvider getProvider() {
         return mProvider;
     }
@@ -75,8 +66,6 @@ public class WebViewLifecycle extends Fragment {
             mProvider.onAttach(mActivity, mWebView, mProvider);
             mProvider.onCreate();
         }
-
-        this.mUploadHandler = null;
     }
 
     @Override
@@ -113,26 +102,9 @@ public class WebViewLifecycle extends Fragment {
         if (isProviderInited()) {
             mProvider.onDestroy();
         }
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (mUploadHandler != null) {
-            mUploadHandler.onResult(requestCode, resultCode, data);
-        }
-
-        mUploadHandler = null;
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
 
         mActivity = null;
         mWebView = null;
         mProvider = null;
-        mUploadHandler = null;
     }
 }
