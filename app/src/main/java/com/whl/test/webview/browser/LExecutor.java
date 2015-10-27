@@ -41,8 +41,8 @@ abstract class LExecutor {
         max.add(LCallback.class);
 
         boolean isValid = true;
-        for (int i = 0; i < paramTypes.length; i++) {
-            isValid = max.remove(paramTypes[i]);
+        for (Class clazz : paramTypes) {
+            isValid = max.remove(clazz);
             if (!isValid) {
                 break;
             }

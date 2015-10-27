@@ -136,7 +136,7 @@ public class LProvider implements LInterface {
 
     private boolean executeImp(LExecutor executor, WebView view, String url, String message, JsResult result) {
         LMessage msg = LMessage.parseMessage(message);
-        if (msg.isValid()) {
+        if (mYKJSFactory.isMessageValid(msg)) {
             executor.execute(view, url, msg, result);
             return true;
         }

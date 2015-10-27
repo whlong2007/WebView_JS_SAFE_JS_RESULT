@@ -18,13 +18,6 @@ final class LMessage {
     static final String KEY_ACTION = "action";
     static final String KEY_ARGS = "args";
 
-    public final static String TAG_VALUE;
-
-    static {
-        UUID uuid = UUID.randomUUID();
-        TAG_VALUE = Base64.encodeToString(uuid.toString().getBytes(), Base64.NO_WRAP | Base64.NO_PADDING);
-    }
-
     String tag;
     String timestamp;
 
@@ -52,9 +45,5 @@ final class LMessage {
         if (msg.args == null) msg.args = new JSONObject();
 
         return msg;
-    }
-
-    boolean isValid() {
-        return TAG_VALUE.equals(tag);
     }
 }

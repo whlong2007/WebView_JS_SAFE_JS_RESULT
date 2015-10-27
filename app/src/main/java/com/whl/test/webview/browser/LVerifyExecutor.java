@@ -69,7 +69,6 @@ class LVerifyExecutor extends LExecutor {
         sb.append(mYKJSProvider.getYKJSFactory().getConfirm());
         sb.append(mYKJSProvider.getYKJSFactory().generateConfirm(obj, method, null));
 
-
         Map<String, Object> ready = new HashMap<String, Object>();
         ready.put("error", 1);
         ready.put("timestamp", timestamp);

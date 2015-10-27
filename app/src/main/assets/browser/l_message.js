@@ -7,7 +7,6 @@ function Message(data) {
   var _timestamp; /*用来回调时候的识别*/
   var _content;
 
-  /**************************************************************************/
   _obj_name = data.obj;
   _obj = getObject(_obj_name);
 
@@ -16,27 +15,28 @@ function Message(data) {
   }
 
   _args = data.args;
-  /**************************************************************************/
 
   Object.defineProperty(this, "args", {
     set: function(args) {
-      _args = window.undefined;
-      _content = window.undefined;
-      _timestamp = window.undefined;
+      _args = undefined;
+      _content = undefined;
+      _timestamp = undefined;
       var callback;
 
-      if (args.length == 1 && typeof args[0] == "function") {
-        callback = args[0];
-      } else {
-        _args = args[0];
-        callback = args[1];
-      }
+      if (args) {
+        if (args.length == 1 && typeof args[0] == "function") {
+          callback = args[0];
+        } else {
+          _args = args[0] ? args[0] : new Object;
 
-      if (typeof _args == "undefined") {
+          if (typeof _args != "object") {
+            throw "Args should be a json Object! \nat " + _obj_name + "." + _action + "()";
+          }
+
+          callback = args[1];
+        }
+      } else {
         _args = new Object;
-      } else if (typeof _args != "object") {
-        throw "Args should be a json Object! \nat " + _obj_name + "." +
-          _action + "()";
       }
 
       /*callback 注册到 window下,名称为obj.action.timestamp*/
@@ -59,9 +59,9 @@ function Message(data) {
       if (!_content) {
         _content = new Object;
 
-        var tag = Message.prototype.tag;
-        if (!tag) {
-          throw "The tag of Message is not defined!";
+        var tag = this.tag;
+        if (typeof tag != "string") {
+          throw "The tag of Message is not defined correctly!";
         }
 
         if (typeof _args != "object") {

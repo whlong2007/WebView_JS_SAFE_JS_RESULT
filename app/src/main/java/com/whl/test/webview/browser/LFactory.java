@@ -1,6 +1,7 @@
 package com.whl.test.webview.browser;
 
 import android.content.Context;
+import android.util.Base64;
 
 import org.json.JSONObject;
 
@@ -9,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * 生成相应的JS字符串
@@ -16,13 +18,11 @@ import java.util.Map;
  */
 class LFactory {
     private Context mContext;
+    private final String mTag;
 
     LFactory(Context context) {
         this.mContext = context;
-    }
-
-    public String sdk_ready() {
-        return null;//TODO
+        this.mTag = Base64.encodeToString(UUID.randomUUID().toString().getBytes(), Base64.NO_WRAP | Base64.NO_PADDING);
     }
 
     String generatePrompt(String obj, String method, Map<String, Object> params) {
@@ -142,15 +142,21 @@ class LFactory {
      * 依赖{@link LFactory#addCallback()}, {@link LFactory#removeCallback()}<br/>
      */
     String getMessage() {
-
         StringBuilder sb = new StringBuilder();
         sb.append(getAssetsString("browser/l_message.js"));
-        sb.append("Message.prototype.tag = \"").append(LMessage.TAG_VALUE).append("\";");
+        sb.append("Message.prototype.tag = \"").append(mTag).append("\";");
 
         sb.append(addCallback());
         sb.append(removeCallback());
 
         return sb.toString();
+    }
+
+    /**
+     * @return Message是否有效
+     */
+    boolean isMessageValid(LMessage msg) {
+        return mTag.equals(msg.tag);
     }
 
     private String getAssetsString(String filename) {
