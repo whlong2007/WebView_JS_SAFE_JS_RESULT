@@ -55,7 +55,7 @@ abstract class LExecutor {
      * 方法的返回类型是否有效
      */
     protected boolean isReturnTypeValid(Class<?> ReturnType) {
-        return ReturnType.isAssignableFrom(JSONObject.class);
+        return JSONObject.class == ReturnType;
     }
 
     /**

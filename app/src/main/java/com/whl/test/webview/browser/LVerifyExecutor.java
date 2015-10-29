@@ -33,7 +33,7 @@ class LVerifyExecutor extends LExecutor {
 
     @Override
     protected boolean isReturnTypeValid(Class<?> ReturnType) {
-        return ReturnType == boolean.class;
+        return ReturnType == Boolean.TYPE || ReturnType == Boolean.class;
     }
 
     @Override
